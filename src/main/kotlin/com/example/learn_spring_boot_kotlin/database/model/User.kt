@@ -7,6 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document(collection = "Users")
 data class User(
     @Id val id: ObjectId = ObjectId.get(),
-    val hashedPassword: String,
+    val hashedPassword: String?,
     val email: String
 )
