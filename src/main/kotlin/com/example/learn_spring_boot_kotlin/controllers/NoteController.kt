@@ -19,7 +19,7 @@ class NoteController(
     fun save(
         @Valid @RequestBody body: NoteService.NoteRequest
     ): NoteService.NoteResponse {
-        val ownerId = "65ef3a1234567890abcdef12"
+        val ownerId = SecurityContextHolder.getContext().authentication?.principal as String
         return noteService.save(
             body = body,
             ownerId = ownerId
@@ -28,13 +28,13 @@ class NoteController(
 
     @GetMapping
     fun findByOwnerId(): List<NoteService.NoteResponse> {
-        val ownerId = "65ef3a1234567890abcdef12"
+        val ownerId = SecurityContextHolder.getContext().authentication?.principal as String
         return noteService.findByOwnerId(ownerId = ownerId)
     }
 
     @DeleteMapping(path = ["/{id}"])
     fun deleteById(@PathVariable id: String) {
-        val ownerId = "65ef3a1234567890abcdef12"
+        val ownerId = SecurityContextHolder.getContext().authentication?.principal as String
     noteService.deleteById(id = id, ownerId = ownerId)
     }
 }
