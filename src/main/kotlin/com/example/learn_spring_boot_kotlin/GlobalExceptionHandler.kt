@@ -3,6 +3,7 @@ package com.example.learn_spring_boot_kotlin
 import com.example.learn_spring_boot_kotlin.dto.WebResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -45,5 +46,15 @@ class GlobalExceptionHandler {
         )
 
         return ResponseEntity.status(e.statusCode).body(response)
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleMessageNotReadableException(e: HttpMessageNotReadableException): ResponseEntity<WebResponse<Any>>{
+        val response = WebResponse<Any>(
+            status = "error",
+            message = "Invalid format request, please send right data structure"
+        )
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response)
     }
 }
