@@ -4,7 +4,9 @@ import com.example.learn_spring_boot_kotlin.database.model.Note
 import com.example.learn_spring_boot_kotlin.database.repository.NoteRepository
 import jakarta.validation.constraints.NotBlank
 import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 
 @Service
@@ -28,7 +30,7 @@ class NoteService(
     )
 
     fun save(body: NoteRequest, ownerId: String): NoteResponse {
-        val note = noteRepository.save(
+        return noteRepository.save(
             Note(
                 id = body.id?.let { ObjectId(it) } ?: ObjectId.get(),
                 title = body.title,
@@ -37,8 +39,21 @@ class NoteService(
                 createdAt = Instant.now(),
                 ownerId = ObjectId(ownerId)
             )
-        )
-        return noteRepository.save(note).toResponse()
+        ).toResponse()
+    }
+
+    fun update(id: String, body: NoteRequest, ownerId: String): NoteResponse{
+        val note = noteRepository.findById(ObjectId(id)).orElseThrow{
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found")
+        }
+
+        if (note.ownerId.toHexString() != ownerId){
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Yor don't have access to remove this note")
+        }
+
+        val updateNote = note.copy(title = body.title, content = body.content, color = body.color)
+
+        return noteRepository.save(updateNote).toResponse()
     }
 
     fun findByOwnerId(ownerId: String): List<NoteResponse>{
@@ -52,9 +67,11 @@ class NoteService(
             IllegalArgumentException("Note not found")
         }
 
-        if (note.ownerId.toHexString() == ownerId){
-            noteRepository.deleteById(ObjectId(id))
+        if (note.ownerId.toHexString() != ownerId){
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Yor don't have access to remove this note")
         }
+
+        noteRepository.deleteById(ObjectId(id))
     }
 }
 
