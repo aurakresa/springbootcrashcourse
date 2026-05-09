@@ -1,9 +1,12 @@
 package com.example.learn_spring_boot_kotlin.controllers
 
+import com.example.learn_spring_boot_kotlin.dto.WebResponse
 import com.example.learn_spring_boot_kotlin.service.AuthService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,15 +34,30 @@ class AuthController(
     @PostMapping("/register")
     fun register(
         @Valid @RequestBody body: AuthRequest
-    ) {
+    ) : ResponseEntity<WebResponse<Any>> {
         authService.register(body.email, body.password)
+
+        val response = WebResponse<Any>(
+            status = "success",
+            message = "register success"
+        )
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
     @PostMapping("/login")
     fun login(
         @RequestBody body: AuthRequest
-    ): AuthService.TokenPair {
-        return authService.login(body.email, body.password)
+    ): ResponseEntity<WebResponse<AuthService.TokenPair>> {
+        val dataToken = authService.login(body.email, body.password)
+
+        val response = WebResponse(
+            status = "success",
+            message = "login success",
+            data = dataToken
+        )
+
+        return ResponseEntity.ok(response)
     }
 
     @PostMapping("/refresh")
